@@ -8,5 +8,6 @@ data class Song(
     @PrimaryKey val id: String,
     val name: String,
     val artistName: String,
+    val path:String,
     var isLiked: Boolean = false
 )

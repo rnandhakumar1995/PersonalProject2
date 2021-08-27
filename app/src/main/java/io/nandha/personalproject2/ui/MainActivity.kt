@@ -2,26 +2,33 @@ package io.nandha.personalproject2.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.SimpleExoPlayer
 import io.nandha.personalproject2.databinding.ActivityMainBinding
 import io.nandha.personalproject2.viewmodel.MainActivityViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+
 class MainActivity : AppCompatActivity() {
     private lateinit var activityMainBinding: ActivityMainBinding
+    private lateinit var player: SimpleExoPlayer
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
         requestPermission()
     }
+
     private fun requestPermission() {
         if (!hasReadPermission()) {
             requestReadPermission()
@@ -81,13 +88,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeUI(viewModel: MainActivityViewModel) {
-        val songsAdapter = SongsAdapter { song ->
+        val songsAdapter = SongsAdapter(playSong = { index, _ ->
+            this@MainActivity.player.seekTo(index, C.TIME_UNSET)
+            this@MainActivity.player.play()
+        }, toggleLike = { song ->
             viewModel.toggleLike(song)
-        }
+        })
         activityMainBinding.songsList.adapter = songsAdapter
         lifecycleScope.launch {
-            viewModel.songs.collectLatest {
-                songsAdapter.setData(it)
+            viewModel.songs.collectLatest { songs ->
+                if (!this@MainActivity::player.isInitialized) {
+                    this@MainActivity.player = SimpleExoPlayer.Builder(this@MainActivity)
+                        .build()
+                    songs.forEach { song ->
+                        this@MainActivity.player.addMediaItem(MediaItem.fromUri(Uri.parse(song.path)))
+                    }
+                    this@MainActivity.player.prepare()
+
+                    activityMainBinding.playerView.player = this@MainActivity.player
+                }
+                songsAdapter.setData(songs)
             }
         }
     }

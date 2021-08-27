@@ -8,7 +8,10 @@ import androidx.recyclerview.widget.RecyclerView
 import io.nandha.personalproject2.R
 import io.nandha.personalproject2.repository.Song
 
-class SongsAdapter(val toggleLike: (song: Song) -> Unit) :
+class SongsAdapter(
+    val playSong: (index: Int, song: Song) -> Unit,
+    val toggleLike: (song: Song) -> Unit
+) :
     RecyclerView.Adapter<SongsAdapter.ViewHolder>() {
     private var data: List<Song> = arrayListOf()
 
@@ -27,7 +30,8 @@ class SongsAdapter(val toggleLike: (song: Song) -> Unit) :
         val song = data[position]
         holder.name.text = song.name
         holder.artist.text = song.artistName
-        holder.liked.text = if(song.isLiked) "Unlike" else "Like"
+        holder.liked.text = if (song.isLiked) "Unlike" else "Like"
+        holder.itemView.setOnClickListener { playSong(position, song) }
         holder.liked.setOnClickListener {
             song.isLiked = !song.isLiked
             toggleLike(song)
@@ -37,6 +41,7 @@ class SongsAdapter(val toggleLike: (song: Song) -> Unit) :
     override fun getItemCount() = data.size
 
     fun setData(data: List<Song>) {
+        println("Size ${data.size}")
         this.data = data
         notifyDataSetChanged()
     }

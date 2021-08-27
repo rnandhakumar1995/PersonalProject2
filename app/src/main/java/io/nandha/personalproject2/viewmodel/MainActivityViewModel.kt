@@ -38,7 +38,8 @@ class MainActivityViewModel(private val app: Application) : AndroidViewModel(app
         val projection: Array<String> = arrayOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.DISPLAY_NAME,
-            MediaStore.Audio.Albums.ARTIST
+            MediaStore.Audio.Albums.ARTIST,
+            MediaStore.Audio.Media.DATA
         )
         val sortOrder: String? = null
         val selectionMimeType = MediaStore.Files.FileColumns.MIME_TYPE + "=?"
@@ -55,10 +56,12 @@ class MainActivityViewModel(private val app: Application) : AndroidViewModel(app
             try {
                 if (it.moveToFirst()) {
                     while (allMp3Files.moveToNext()) {
+                        println("Path ${getAlbumDetail(it, MediaStore.Audio.Media.DATA)}")
                         val song = Song(
                             getAlbumDetail(it, MediaStore.Audio.Media._ID),
                             getAlbumDetail(it, MediaStore.Audio.Media.DISPLAY_NAME),
                             getAlbumDetail(it, MediaStore.Audio.Albums.ARTIST),
+                            getAlbumDetail(it, MediaStore.Audio.Media.DATA)
                         )
                         songs.add(song)
                     }
